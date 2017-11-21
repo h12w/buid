@@ -50,6 +50,8 @@ Definitions:
 package buid
 
 import (
+	"encoding/hex"
+	"errors"
 	"sync"
 	"time"
 )
@@ -192,6 +194,28 @@ func (id ID) Split() (Shard, Key) {
 	copy(shard[:], id[:8])
 	copy(key[:], id[8:])
 	return shard, key
+}
+
+func (id ID) String() string {
+	return hex.EncodeToString(id[:])
+}
+
+func (id ID) MarshalText() (text []byte, err error) {
+	return []byte(id.String()), nil
+}
+
+func (id *ID) UnmarshalText(text []byte) error {
+	buf, err := hex.DecodeString(string(text))
+	if err != nil {
+		return err
+	}
+	if len(buf) != 16 {
+		return errors.New("mismatched BUID length")
+	}
+	for i := range buf {
+		(*id)[i] = buf[i]
+	}
+	return nil
 }
 
 func join(shard Shard, key Key) ID {
