@@ -196,24 +196,27 @@ func (id ID) Split() (Shard, Key) {
 	return shard, key
 }
 
+// String returns the hexidecimal encoded string
 func (id ID) String() string {
-	return hex.EncodeToString(id[:])
+	text, _ := id.MarshalText()
+	return string(text)
 }
 
+// MarshalText returns the hexidecimal encoded text
 func (id ID) MarshalText() (text []byte, err error) {
-	return []byte(id.String()), nil
+	text = make([]byte, len(id)*2)
+	_ = hex.Encode(text, id[:])
+	return text, nil
 }
 
+// UnmarshalText unmarshals from hexidicmal encoded text
 func (id *ID) UnmarshalText(text []byte) error {
-	buf, err := hex.DecodeString(string(text))
+	n, err := hex.Decode(id[:], text)
 	if err != nil {
 		return err
 	}
-	if len(buf) != 16 {
-		return errors.New("mismatched BUID length")
-	}
-	for i := range buf {
-		(*id)[i] = buf[i]
+	if n != 16 {
+		return errors.New("BUID length must be 128 bit")
 	}
 	return nil
 }

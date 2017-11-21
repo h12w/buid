@@ -1,9 +1,6 @@
 package buid
 
 import (
-	"bytes"
-	"log"
-	"os"
 	"runtime"
 	"sort"
 	"sync"
@@ -204,19 +201,41 @@ func BenchmarkMaxCounter(b *testing.B) {
 }
 
 func TestMarshalText(t *testing.T) {
-	id := NewProcess(uint16(os.Getpid())).NewID(1, time.Now().UTC())
-	if _, err := id.MarshalText(); err != nil {
+	id1 := NewProcess(2).NewID(1, time.Now().UTC())
+	buf, err := id1.MarshalText()
+	if err != nil {
 		t.Fatal(err)
+	}
+	var id2 ID
+	if err := id2.UnmarshalText(buf); err != nil {
+		t.Fatal(err)
+	}
+	if id1 != id2 {
+		t.Fatalf("expect %v got %v", id1, id2)
 	}
 }
 
-func TestUnmarshalText(t *testing.T) {
-	id := NewProcess(uint16(os.Getpid())).NewID(1, time.Now().UTC())
-	var id2 ID
-	if err := id2.UnmarshalText([]byte(id.String())); err != nil {
-		log.Fatal(err)
+func TestUnmarshalTextError(t *testing.T) {
+	{
+		buf := make([]byte, 31)
+		var id ID
+		if err := id.UnmarshalText(buf); err == nil {
+			t.Fatal("expect error")
+		}
 	}
-	if !bytes.Equal(id[:], id2[:]) {
-		log.Fatalf("unmatched id")
+	{
+		buf := []byte("ff")
+		var id ID
+		if err := id.UnmarshalText(buf); err == nil {
+			t.Fatal("expect error")
+		}
+	}
+}
+
+func TestString(t *testing.T) {
+	id := NewProcess(2).NewID(1, externalTime(Epoch))
+	expected := "00010000000665280000000000000002"
+	if id.String() != expected {
+		t.Fatalf("expect %v got %v", expected, id.String())
 	}
 }
