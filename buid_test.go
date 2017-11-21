@@ -1,6 +1,9 @@
 package buid
 
 import (
+	"bytes"
+	"log"
+	"os"
 	"runtime"
 	"sort"
 	"sync"
@@ -198,4 +201,22 @@ func BenchmarkMaxCounter(b *testing.B) {
 	})
 	sort.Sort(sort.Reverse(sort.IntSlice(a)))
 	b.Logf("max counter is %d", a[0])
+}
+
+func TestMarshalText(t *testing.T) {
+	id := NewProcess(uint16(os.Getpid())).NewID(1, time.Now().UTC())
+	if _, err := id.MarshalText(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUnmarshalText(t *testing.T) {
+	id := NewProcess(uint16(os.Getpid())).NewID(1, time.Now().UTC())
+	var id2 ID
+	if err := id2.UnmarshalText([]byte(id.String())); err != nil {
+		log.Fatal(err)
+	}
+	if !bytes.Equal(id[:], id2[:]) {
+		log.Fatalf("unmatched id")
+	}
 }
