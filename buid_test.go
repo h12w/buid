@@ -1,6 +1,7 @@
 package buid
 
 import (
+	"fmt"
 	"runtime"
 	"sort"
 	"sync"
@@ -211,7 +212,12 @@ func TestMarshalText(t *testing.T) {
 		t.Fatal(err)
 	}
 	if id1 != id2 {
-		t.Fatalf("expect %v got %v", id1, id2)
+		for i := range id1 {
+			if id1[i] != id2[i] {
+				fmt.Printf("%d,%x,%x\n", i, id1[i], id2[i])
+			}
+		}
+		t.Fatalf("expect\n%x\ngot\n%x", id1[:], id2[:])
 	}
 }
 
@@ -234,7 +240,7 @@ func TestUnmarshalTextError(t *testing.T) {
 
 func TestString(t *testing.T) {
 	id := NewProcess(2).NewID(1, externalTime(Epoch))
-	expected := "00010000000665280000000000000002"
+	expected := "0skIcr10rnBGT3wdrHO2"
 	if id.String() != expected {
 		t.Fatalf("expect %v got %v", expected, id.String())
 	}

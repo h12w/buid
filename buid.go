@@ -19,7 +19,7 @@ shard:
     0             1               2               3
     7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |           shard-index         |            reserved           |
+   |           shard-hash          |            reserved           |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                  hours (from bespoke epoch)                   |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -36,24 +36,25 @@ key:
 
 Definitions:
 
-   | item        | type   | description                                                        |
-   |-------------|--------|--------------------------------------------------------------------|
-   | shard-index | uint16 | the index of the shard for storing the data associated to the BUID |
-   | hours       | uint32 | hours from bespoke epoch (490,293 years, should be enough :-)      |
-   | minutes     | uint6  | 0-59 minutes within an hour                                        |
-   | seconds     | uint6  | 0-59 seconds within a minute                                       |
-   | nanoseconds | uint30 | 0-999999999 nanoseconds within a second                            |
-   | counter     | uint6  | cyclic counter for within each nanosecond                          |
-   | process     | uint16 | a unique process on a specific node                                |
+   | item        | type   | description                                                         |
+   |-------------|--------|---------------------------------------------------------------------|
+   | shard-hash  | uint16 | a hash code for a shard for storing the data associated to the BUID |
+   | hours       | uint32 | hours from bespoke epoch (490,293 years, should be enough :-)       |
+   | minutes     | uint6  | 0-59 minutes within an hour                                         |
+   | seconds     | uint6  | 0-59 seconds within a minute                                        |
+   | nanoseconds | uint30 | 0-999999999 nanoseconds within a second                             |
+   | counter     | uint6  | cyclic counter for within each nanosecond                           |
+   | process     | uint16 | a unique process on a specific node                                 |
 
 */
 package buid
 
 import (
-	"encoding/hex"
 	"errors"
 	"sync"
 	"time"
+
+	"h12.me/buid/basex"
 )
 
 type (
@@ -196,29 +197,30 @@ func (id ID) Split() (Shard, Key) {
 	return shard, key
 }
 
-// String returns the hexidecimal encoded string
-func (id ID) String() string {
-	text, _ := id.MarshalText()
-	return string(text)
-}
+var base62Encoding, _ = basex.NewEncoding("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // MarshalText returns the hexidecimal encoded text
 func (id ID) MarshalText() (text []byte, err error) {
-	text = make([]byte, len(id)*2)
-	_ = hex.Encode(text, id[:])
-	return text, nil
+	return []byte(base62Encoding.Encode(id[:])), nil
 }
 
 // UnmarshalText unmarshals from hexidicmal encoded text
 func (id *ID) UnmarshalText(text []byte) error {
-	n, err := hex.Decode(id[:], text)
+	data, err := base62Encoding.Decode(string(text))
 	if err != nil {
 		return err
 	}
-	if n != 16 {
+	if len(data) != 16 {
 		return errors.New("BUID length must be 128 bit")
 	}
+	copy(id[:], data)
 	return nil
+}
+
+// String returns the hexidecimal encoded string
+func (id ID) String() string {
+	text, _ := id.MarshalText()
+	return string(text)
 }
 
 func join(shard Shard, key Key) ID {
