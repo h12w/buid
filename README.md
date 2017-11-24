@@ -10,3 +10,7 @@ Also, when a message is stored in a shard, the shard part of the BUID can be tri
 Bigendian is chosen to make each part byte-wise lexicographic sortable.
 
 The string representation uses [basex](https://github.com/eknkc/basex) 62 encoding.
+
+TODO:
+
+* monotonic clock to pretect ID generation from clock going backward
