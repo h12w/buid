@@ -178,6 +178,14 @@ func (id ID) Shard() uint16 {
 	return (uint16(id[0]) << 8) | uint16(id[1])
 }
 
+// Hour returns the embedded hour
+func (id ID) Hour() uint32 {
+	return (uint32(id[4]) << 24) |
+		(uint32(id[5]) << 16) |
+		(uint32(id[6]) << 8) |
+		uint32(id[7])
+}
+
 // Process returns the embedded process ID
 func (id ID) Process() uint16 {
 	return (uint16(id[14]) << 8) | uint16(id[15])
