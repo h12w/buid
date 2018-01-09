@@ -47,6 +47,7 @@ Definitions:
    | process     | uint16 | a unique process on a specific node                                 |
 
 */
+//go:generate msgp
 package buid
 
 import (
