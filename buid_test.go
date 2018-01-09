@@ -245,3 +245,14 @@ func TestString(t *testing.T) {
 		t.Fatalf("expect %v got %v", expected, id.String())
 	}
 }
+
+func TestIsZero(t *testing.T) {
+	var id ID
+	if !id.IsZero() {
+		t.Fatal("expect zero is true")
+	}
+	id[1] = 1
+	if id.IsZero() {
+		t.Fatal("expect zero is not true")
+	}
+}

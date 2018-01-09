@@ -179,14 +179,6 @@ func (id ID) Shard() uint16 {
 	return (uint16(id[0]) << 8) | uint16(id[1])
 }
 
-// Hour returns the embedded hour
-func (id ID) Hour() uint32 {
-	return (uint32(id[4]) << 24) |
-		(uint32(id[5]) << 16) |
-		(uint32(id[6]) << 8) |
-		uint32(id[7])
-}
-
 // Process returns the embedded process ID
 func (id ID) Process() uint16 {
 	return (uint16(id[14]) << 8) | uint16(id[15])
@@ -208,13 +200,22 @@ func (id ID) Split() (Shard, Key) {
 
 var base62Encoding, _ = basex.NewEncoding("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+// IsZero returns whether or not the ID is initialized
+func (id ID) IsZero() bool { return id == ID{} }
+
 // MarshalText returns the hexidecimal encoded text
 func (id ID) MarshalText() (text []byte, err error) {
+	if id.IsZero() {
+		return nil, nil
+	}
 	return []byte(base62Encoding.Encode(id[:])), nil
 }
 
 // UnmarshalText unmarshals from hexidicmal encoded text
 func (id *ID) UnmarshalText(text []byte) error {
+	if len(text) == 0 {
+		return nil
+	}
 	data, err := base62Encoding.Decode(string(text))
 	if err != nil {
 		return err
