@@ -221,6 +221,27 @@ func TestMarshalText(t *testing.T) {
 	}
 }
 
+func TestMarshalTextForKey(t *testing.T) {
+	id1 := NewProcess(2).NewID(1, time.Now().UTC())
+	_, key1 := id1.Split()
+	buf, err := key1.MarshalText()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var key2 Key
+	if err := key2.UnmarshalText(buf); err != nil {
+		t.Fatal(err)
+	}
+	if key1 != key2 {
+		for i := range key1 {
+			if key1[i] != key2[i] {
+				fmt.Printf("%d,%x,%x\n", i, key1[i], key2[i])
+			}
+		}
+		t.Fatalf("expect\n%x\ngot\n%x", key1[:], key2[:])
+	}
+}
+
 func TestUnmarshalTextError(t *testing.T) {
 	{
 		buf := make([]byte, 31)

@@ -233,6 +233,39 @@ func (id ID) String() string {
 	return string(text)
 }
 
+// IsZero returns whether or not the ID is initialized
+func (id Key) IsZero() bool { return id == Key{} }
+
+// MarshalText returns the hexidecimal encoded text
+func (id Key) MarshalText() (text []byte, err error) {
+	if id.IsZero() {
+		return nil, nil
+	}
+	return []byte(base62Encoding.Encode(id[:])), nil
+}
+
+// UnmarshalText unmarshals from hexidicmal encoded text
+func (id *Key) UnmarshalText(text []byte) error {
+	if len(text) == 0 {
+		return nil
+	}
+	data, err := base62Encoding.Decode(string(text))
+	if err != nil {
+		return err
+	}
+	if len(data) != 8 {
+		return errors.New("BUID length must be 128 bit")
+	}
+	copy(id[:], data)
+	return nil
+}
+
+// String returns the hexidecimal encoded string
+func (id Key) String() string {
+	text, _ := id.MarshalText()
+	return string(text)
+}
+
 func join(shard Shard, key Key) ID {
 	var id ID
 	copy(id[:8], shard[:])
