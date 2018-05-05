@@ -55,7 +55,7 @@ import (
 	"sync"
 	"time"
 
-	"h12.me/buid/basex"
+	"h12.io/buid/basex"
 )
 
 type (
